@@ -1,2 +1,5 @@
-To run locallyL:
+My CS+Music senior capstone project :)
+https://sallyxue-0114.github.io/EthnoSonify/
+
+To run locally:
 run 'python -m http.server 8000' in terminal
