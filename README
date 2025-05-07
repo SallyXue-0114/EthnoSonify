@@ -1,0 +1,39 @@
+Base notes:
+[79, 79, 81, 84, 76, 79, 74, 74, 79, 79, 69, 69, 76, 79, 74, 74, 
+76, 79, 62, 62, 64, 64, 57, 57, 55, 57, 50, 50, 48, 50]
+
+
+
+Timbre:
+I plan to first try out sampling traditional instruments of certain ethnic group, mapping them to certain 
+MIDI keys.
+Additionally, I may add a layer of traditional instruments piece (non-pitch) above it (to rich the layer).
+
+Reverb: Base on climate. wet - more reverb?
+
+
+Explain Why
+need to explain why sonificied this way
+
+timeline, other year's data
+
+Can have different files, don't put in 1 python file
+DAW - keep the record,  present document, workflow
+
+source
+2020: https://www.stats.gov.cn/sj/pcsj/rkpc/5rp/index.htm
+2010: https://www.stats.gov.cn/sj/pcsj/rkpc/6rp/lefte.htm
+2020: https://www.stats.gov.cn/sj/pcsj/rkpc/7rp/zk/indexch.htm
+
+population: how complicated/range the chord has
+音色: Granular synthesis 民族乐器
+reverb: 气候wet, more reverb
+人口变化: 每个民族一共4秒, 前两秒是2010年数据的和弦, 后两秒是2020年数据的和弦
+用中国五声调式
+
+
+以现有的note为基础,MIDI note 48(上下)为和弦最低音。这样population小的就和弦跨度更小/和弦更简单. 像最小的纳西族
+就只有48那一个音。
+
+To run the web:
+cd into web, run 'python -m http.server 8000'

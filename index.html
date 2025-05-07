@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国地图播放音频与人口数据</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/howler@2.2.3/dist/howler.min.js"></script>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        #map-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            /* 让整个容器宽度自适应 */
+        }
+
+        #map {
+            width: 60vw;
+            /* 宽度是视口宽度的 90% */
+            height: 80vh;
+            /* 高度是视口高度的 50% */
+            min-width: 400px;
+            /* 设置一个最小宽度，防止过小 */
+            min-height: 300px;
+            /* 设置一个最小高度，防止过小 */
+        }
+
+        #legend-container {
+            width: 25vw;
+            /* 宽度是视口宽度的 25% */
+            height: 5vh;
+            /* 高度是视口高度的 5% */
+            margin-top: 20px;
+            min-width: 150px;
+            /* 最小宽度 */
+            min-height: 40px;
+            /* 最小高度 */
+        }
+    </style>
+</head>
+
+
+<body>
+    <nav style="
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 30px;
+    background-color: rgb(150,84,84);
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    font-family: sans-serif;
+">
+        <div style="font-size: 28px; font-weight: bold;">EthnoSonify</div>
+        <div>
+            <a href="index.html" style="color: white; margin-right: 20px; text-decoration: none;">Home</a>
+            <a href="about.html" style="color: white; text-decoration: none;">About</a>
+        </div>
+    </nav>
+
+
+    <div id="map-container" style="display: flex; flex-direction: column; height: 100vh;">
+
+        <!-- 上方区域，占高的 2/3 -->
+        <div style="flex: 2; display: flex; gap: 40px; padding: 20px;">
+            <!-- 左边地图区域 -->
+            <div style="display: flex; flex-direction: column;">
+                <div id="map"></div>
+                <div id="legend-container"></div>
+            </div>
+
+
+            <!-- 右边省份介绍区域 -->
+            <div style="flex: 1; display: flex; flex-direction: column;">
+                <h2
+                    style="font-size: 24px; font-weight: bold; color: rgb(150,84,84); text-align: center; margin-bottom: 10px;">
+                    Click any province to get started!
+                </h2>
+                <p style="font-size: 16px; color: #555; text-align: center; margin-top: 0; font-style: italic;">
+                    (Currently red ones contain ethnic groups information)
+                </p>
+                <hr style="border: 1px solid #ddd; width: 80%; margin: 20px auto;">
+
+                <div id="info" style="font-size: 18px; color: black; margin-top: 20px;">
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <script>
+        // 地图初始化
+        var map = L.map('map').setView([35.8617, 104.1954], 5);
+
+        // 使用 OpenStreetMap 英文版底图
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // 人口数据（2000年和2020年）
+        const populationData = {
+            '宁夏': [981.68, 1137.79],
+            '广西': [1617.88, 1956.85],
+            '湖南': [802.81, 958.77],
+            '内蒙古': [581.39, 629.02],
+            '辽宁': [1068.23, 1042.33],
+            '贵州': [297.15, 357.68],
+            '新疆': [839.94, 1177.45],
+            '西藏': [541.60, 706.07]
+        };
+
+        // 获取所有人口数据的最小值和最大值
+        const popValues = Object.values(populationData).flat();
+        const popMin = Math.min(...popValues);
+        const popMax = Math.max(...popValues);
+
+        const colorScale = d3.scaleLinear()
+            .domain([popMax, popMin])
+            .range(['#a50f15', '#fee5d9']);
+
+        // 增加 SVG 宽度以容纳刻度
+        const legendWidth = 300;  // 颜色条宽度
+        const legendTotalWidth = 500;  // 总宽度（颜色条+刻度）
+        const legendHeight = 20;  // 颜色条高度
+        const legendMarginTop = 50;
+
+        // 创建比例尺 SVG
+        const legendSvg = d3.select('#legend-container').append('svg')
+            .attr('width', legendTotalWidth)
+            .attr('height', legendHeight + legendMarginTop)  // 留出空间放置刻度
+            .attr('class', 'legend');
+
+        // 绘制颜色条（横向）
+        legendSvg.selectAll('rect')
+            .data(d3.range(popMin, popMax, (popMax - popMin) / 100))
+            .enter().append('rect')
+            .attr('x', d => (legendWidth * (d - popMin)) / (popMax - popMin))  // 横向位置
+            .attr('y', 0)  // 保持y为0，确保条是横向的
+            .attr('width', (popMax - popMin) / 100)
+            .attr('height', legendHeight)
+            .attr('fill', d => colorScale(d));
+
+        // 创建坐标轴比例尺（横向）
+        const legendAxis = d3.axisBottom(d3.scaleLinear()
+            .domain([popMin, popMax])
+            .range([0, legendWidth])
+        ).ticks(5);
+
+        // 将坐标轴放在颜色条下方
+        legendSvg.append('g')
+            .attr('transform', `translate(0, ${legendHeight})`)  // 下方放置刻度
+            .call(legendAxis);
+
+        // 添加单位说明文字
+        legendSvg.append("text")
+            .attr("x", legendWidth + 25)  // 放在颜色条右侧或你想要的位置
+            .attr("y", legendHeight - 5) // 调整纵向位置，确保不挡住刻度
+            .attr("fill", "#333")
+            .style("font-size", "14px")
+            .text("Unit: 10,000 people");
+
+
+        fetch('china.json')
+            .then(response => response.json())
+            .then(chinaData => {
+                // 渲染地图并处理每个省份
+                L.geoJSON(chinaData, {
+                    onEachFeature: function (feature, layer) {
+                        const provinceName = feature.properties.name;
+
+                        // 获取当前省份的2000年和2020年人口数据
+                        const [pop2000, pop2020] = populationData[provinceName] || [0, 0];
+
+                        // 根据人口数据获取颜色
+                        const color2000 = colorScale(pop2000);
+                        const color2020 = colorScale(pop2020);
+
+                        // 设置初始样式（2000年）
+                        layer.setStyle({
+                            fillColor: color2000,
+                            fillOpacity: 0.6,
+                            weight: 1,
+                            color: '#000'
+                        });
+
+                        // 民族介绍文本（部分省份）
+                        const introText = {
+                            '北京': 'Beijing',
+                            '天津': 'Tianjin',
+                            '上海': 'Shanghai',
+                            '重庆': 'Chongqing',
+                            '河北': 'Hebei Province',
+                            '山西': 'Shanxi Province',
+                            '吉林': 'Jilin Province',
+                            '黑龙江': 'Heilongjiang Province',
+                            '江苏': 'Jiangsu Province',
+                            '浙江': 'Zhejiang Province',
+                            '安徽': 'Anhui Province',
+                            '福建': 'Fujian Province',
+                            '江西': 'Jiangxi Province',
+                            '山东': 'Shandong Province',
+                            '河南': 'Henan Province',
+                            '湖北': 'Hubei Province',
+                            '广东': 'Guangdong Province',
+                            '海南': 'Hainan Province',
+                            '四川': 'Sichuan Province',
+                            '云南': 'Yunnan Province',
+                            '陕西': 'Shaanxi Province',
+                            '甘肃': 'Gansu Province',
+                            '青海': 'Qinghai Province',
+                            '台湾': 'Taiwan Province',
+                            '香港': 'Hong Kong SAR',
+                            '澳门': 'Macau SAR'
+
+                        };
+
+                        // 所有省份的英文名称（简略 info）
+
+                        // 前 8 个有详细介绍的省份
+                        const detailedIntroText = {
+                            '宁夏': `
+                                NingXia Province, Hui Ethnics（回族）<br>
+                                <img src="img/ningxia.jpg" style="width:200px; margin-top:10px;">
+                            `,
+                            '广西': `
+                                Guangxi Province, Zhuang Ethnics（壮族）<br>
+                                <img src="img/guangxi.jpg" style="width:200px; margin-top:10px;">
+                            `,
+                            '湖南': `
+                                Hunan Province, Tu Ethnics（土家族）<br>
+                                <img src="img/hunan.jpg" style="width:200px; margin-top:10px;">
+                            `,
+                            '内蒙古': `
+                                Neimenggu Province, Menggu Ethnics（蒙古族）<br>
+                                <img src="img/neimenggu.jpg" style="width:200px; margin-top:10px;">
+                            `,
+                            '辽宁': `
+                                Liaoning Province, Man Ethnics（满族）<br>
+                                <img src="img/liaoning.jpg" style="width:200px; margin-top:10px;">
+                            `,
+                            '贵州': `
+                                Guizhou Province, Buyi Ethnics（布依族）<br>
+                                <img src="img/guizhou.jpg" style="width:200px; margin-top:10px;">
+                            `,
+                            '新疆': `
+                                Xinjiang Province, Weiwuer Ethnics（维吾尔族）<br>
+                                <img src="img/xinjiang.jpg" style="width:200px; margin-top:10px;">
+                            `,
+                            '西藏': `
+                                Xizang Province, Zang Ethnics（藏族）<br>
+                                <img src="img/xizang.jpg" style="width:200px; margin-top:10px;">
+                            `
+                        };
+
+
+                        // 前8个有配音的省份
+                        const provincesWithAudio = ['宁夏', '广西', '湖南', '内蒙古', '辽宁', '贵州', '新疆', '西藏'];
+
+                        // 判断是否是这8个省份之一
+                        const hasAudio = provincesWithAudio.includes(provinceName);
+                        // 设置音频路径：如果没有 introText，就播放 wind.mp3
+                        const audioPath = hasAudio ? `audio/${provinceName}.mp3` : 'audio/wind.mp3';
+                        const sound = new Howl({
+                            src: [audioPath]
+                        });
+
+
+                        // 设置点击事件
+                        layer.on('click', function () {
+                            sound.play();  // 播放完整音频
+
+                            // 切换颜色（4秒后从2000年变为2020年）
+                            layer.setStyle({ fillColor: color2000 });
+                            setTimeout(() => {
+                                layer.setStyle({ fillColor: color2020 });
+                            }, 4000);
+
+                            // 更新信息面板
+                            const infoDiv = document.getElementById('info');
+                            if (provinceName in detailedIntroText) {
+                                // 前 8 个，有详细介绍
+                                infoDiv.innerHTML = `
+        <strong>${provinceName}</strong><br>
+        ${detailedIntroText[provinceName]}
+    `;
+                            } else {
+                                // 其他省份
+                                infoDiv.innerHTML = `
+        <strong>${provinceName}</strong><br>
+        ${introText[provinceName]}<br>
+        Currently no dominant ethnic group information.
+    `;
+                            }
+                        });
+
+                    }
+                }).addTo(map);
+            })
+            .catch(error => {
+                console.error('加载 china.json 时出错:', error);
+            });
+
+
+        // 播放音频控制
+        let currentAudio = null;  // 用来存储当前播放的音频对象
+
+        function playAudio(audioId) {
+            // 停止当前音频（如果有的话）
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0; // 从头开始
+            }
+
+            // 获取对应的音频元素并播放
+            const audio = document.getElementById(audioId);
+            audio.play();
+
+            // 更新当前播放的音频对象
+            currentAudio = audio;
+        }
+
+
+        // 绑定点击事件到每个省份（假设你已经在地图上为每个省份添加了相应的事件监听器）
+        const provinces = document.querySelectorAll('.province');  // 假设省份是用.class为`province`标记的
+
+        provinces.forEach(province => {
+            province.addEventListener('click', (event) => {
+                const provinceName = event.target.getAttribute('data-name');  // 假设每个省份都有一个`data-name`属性
+                console.log(provinceName)
+
+                // 假设每个省份的音频都已经用ID进行了命名，例如"audio-beijing"、"audio-shanghai"
+                const audioId = `audio-${provinceName.toLowerCase()}`;
+
+                // 播放音频
+                playAudio(audioId);
+            });
+        });
+
+    </script>
+
+</body>
+
+</html>
