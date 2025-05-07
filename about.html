@@ -1,3 +1,7 @@
+<head>
+    <meta charset="UTF-8">
+</head>
+
 <body>
     <nav style="
     display: flex;
@@ -19,21 +23,82 @@
     </nav>
 
 
-    <div style="padding: 40px; font-size: 18px; line-height: 1.6;">
-        <h1>About EthnoSonify</h1>
+    <div
+        style="padding: 50px 80px; font-family: 'Helvetica Neue', sans-serif; background-color: #f9f9f9; color: #333; line-height: 1.8; font-size: 18px; max-width: 900px; margin: 0 auto; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.05);">
+
+        <h1 style="font-size: 32px; color: #222; margin-bottom: 30px;">About EthnoSonify</h1>
         <p>
-            EthnoSonify is a digital humanities project combining ethnic population data, geographic visualization,
-            and sound-based interaction design.
+            <strong>EthnoSonify</strong> is the senior capstone project of Sally Xue (CS+Music, UIUC). It visualizes
+            population
+            changes
+            among representative ethnic groups across 8 provinces in China between 2000 and 2020, using a combination
+            of color-coded geographic maps and narrative storytelling.
+        </p>
+        <p>
+            In addition to visual data, EthnoSonify explores <strong>data sonification</strong> by sampling traditional
+            instruments
+            from various ethnic groups. The population increase is represented through the layering and richness of
+            harmony and instrumentation.
+        </p>
+        <p>
+            To enhance understanding, the project includes curated images and video clips of ethnic instruments,
+            allowing
+            users to engage more intuitively with the cultural context behind the data.
         </p>
 
-        <h2>Team</h2>
-        <p>Developed by [Your Name], [Collaborator], etc.</p>
+        <h2 style="margin-top: 40px; font-size: 24px; color: #222;">Data Sources</h2>
 
-        <h2>Data</h2>
-        <p>Population data is based on China census data from 2000 and 2020.</p>
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
 
-        <h2>Contact</h2>
-        <p>Email: you@example.com</p>
+            <div
+                style="background: #fff; padding: 15px 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                <strong style="color: #333;">Population Data:</strong>
+                <ul style="margin-left: 20px; margin-top: 8px; line-height: 1.6;">
+                    <li>
+                        <a href="https://www.stats.gov.cn/sj/pcsj/rkpc/5rp/index.htm" target="_blank"
+                            style="text-decoration: none; color: #007acc;">2000 Census – National Bureau of
+                            Statistics</a>
+                    </li>
+                    <li>
+                        <a href="https://www.stats.gov.cn/sj/pcsj/rkpc/7rp/zk/indexch.htm" target="_blank"
+                            style="text-decoration: none; color: #007acc;">2020 Census – National Bureau of
+                            Statistics</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div
+                style="background: #fff; padding: 15px 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                <strong style="color: #333;">Music Recordings:</strong>
+                <p style="margin: 8px 0 0 0;">
+                    Mainly from Bilibili uploader
+                    <a href="https://space.bilibili.com/387053620" target="_blank"
+                        style="text-decoration: none; color: #007acc;">瑞鸣中国音乐地图</a>
+                </p>
+            </div>
+
+            <div
+                style="background: #fff; padding: 15px 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                <strong style="color: #333;">Map Data:</strong>
+                <p style="margin: 8px 0 0 0;">
+                    <a href="https://geojson.cn/api/china/china.json" target="_blank"
+                        style="text-decoration: none; color: #007acc;">GeoJSON China</a>
+                </p>
+            </div>
+
+            <div
+                style="background: #fff; padding: 15px 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                <strong style="color: #333;">Map Rendering:</strong>
+                <p style="margin: 8px 0 0 0;">
+                    via <a href="https://www.openstreetmap.org/" target="_blank"
+                        style="text-decoration: none; color: #007acc;">OpenStreetMap</a>
+                </p>
+            </div>
+
+        </div>
+
+
     </div>
+
 
 </body>
